@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Socket.io Chat Server</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/style/style.css">
+</head>
+<body>
+	<script>
+	var socket;
+
+	//declaring var to check if first connection
+	var firstconnect = true;
+
+	//getting date and customizing the output
+	var date = new Date();
+	var dateC = date.getMonth() + "-" + date.getDate() + "-" + date.getFullYear();
+
+	function connect(){
+		if(firstconnect) {
+		socket = io.connect(null);
+
+
+
+		//callbacks for standard socket.io server events
+		
+		socket.on('connect', function(){
+			$('#status').html('Connected to Server');
+		});
+		
+		socket.on('disconnect', function(){
+			$('#status').html('Disconnected from Server');
+		});
+		
+		socket.on('reconnecting', function( nextRetry ){
+			$('#status').html('Reconnecting in ' + nextRetry + ' miliseconds');
+		});
+		
+		socket.on('reconnect_failed', function(){
+			$('#status').html('Reconnect Failed');
+		});
+
+		//callback for the custom 'chat' event
+		socket.on('chat', function(client, message){
+			$('#messages').append('<strong style="padding:2px;background:#acacac;border:1px solid #666;">' + client + ':</strong> ' + message + ' ~ <span style="font-style:italic;color:#777;font-size:12px;">' + dateC + '</span><br>');
+		});
+
+		//set the var to false as client has already connected and thus allow the else to run and permit reconnection
+		firstconnect = false;
+		}//end if 
+		else {
+			socket.socket.reconnect();
+		}
+	}
+
+	function disconnect(){
+		socket.disconnect();
+	}
+
+	function send(){
+		if($('#message').val() != ''){
+			socket.send($('#message').val());
+			$('#message').val('');$('#message').focus();}
+		else{
+			$('#messages').append('<span style="color:red;">Please write something</span><br>');
+		}
+	}
+
+	//adding enter functionality
+	function keyPressListener(e) {
+        if (e.keyCode == 13 && $('#message').focus()) {
+            send();
+	    }
+	}
+	</script>
+	
+	<div class="super-container nav-bar shadow-bottom color-text">
+		<div class="container">
+			<h1 class="color-text center" style="padding:10px;">Socket.io Chat Server</h1>
+		</div>
+	</div>
+
+	<div class="container right" style="margin-bottom:10px;">
+		<!-- connect -->
+		<button id="connect" style="padding:2px;" onClick="connect()">Connect</button>
+
+		<!-- disconnect -->
+		<button id="disconnect" style="padding:2px;" onClick="disconnect()">Disconnect</button>
+
+		
+	</div>
+
+	<div class="container">
+		
+		<div class="message-container">
+			<div class="message-panel">
+
+				<!-- output messages panel -->
+				<div class="output-panel">
+					<!-- status -->
+					<label id="status" style="margin-bottom:10px;">Not connected. <span style="font-weight:normal;">Press the connect button if you want to chat.</span></label>
+					<div id="messages"></div>
+				</div>
+				
+
+
+				<!-- send message -->
+				<div>
+					<span style="display:block;padding:5px;background:white;border-radius:0em 0em 0.5em 0.5em;">
+						<input type="text" onkeypress="keyPressListener(event)" id="message">
+					</span>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+	
+	<!-- footer -->
+	<div class="super-container footer">
+		<div class="container">
+			<h5 class="center" style="padding:10px;font-size:13px;">&copy; Developed by <a href="www.behance.net/edlahoz">Eduardo La Hoz</a> - 2013</h5>
+		</div>
+	</div>
+
+</body>
+</html>
